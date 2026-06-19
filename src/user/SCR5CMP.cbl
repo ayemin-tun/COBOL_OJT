@@ -17,15 +17,14 @@
            05 LS-PREMIUM              PIC 9(6).
            05 LS-PLAN-NAME            PIC X(10).
            05 LS-USER-NAME            PIC X(30).
-           05 LS-USER-EMAIL           PIC X(30).
+           05 LS-USER-EMAIL           PIC X(20).
            05 LS-USER-PHONE           PIC X(15).
            05 LS-USER-POSTAL          PIC X(10).
            05 LS-USER-ADDRESS         PIC X(50).
            05 LS-USER-DOB             PIC X(10).
-           05 LS-DEC-1                PIC X.
-           05 LS-DEC-2                PIC X.
-           05 LS-DEC-3                PIC X.
-           05 LS-DEC-4                PIC X.
+           *> Dynamic Answers Array (Matches Main Program)
+           05 LS-DEC-ANSWERS.
+              10 LS-DEC-ANS           OCCURS 20 TIMES PIC X.
            05 LS-STATUS               PIC X(10).
            05 FILLER                  PIC X(20).
 
@@ -38,5 +37,6 @@
            DISPLAY "Plan Name: " FUNCTION TRIM(LS-PLAN-NAME).
            DISPLAY "Estimated Premium: " WS-PREMIUM-DISP " JPY".
            DISPLAY "Message: Your application has been submitted.".
+           
            DISPLAY "Status:" LS-STATUS .
            EXIT PROGRAM.

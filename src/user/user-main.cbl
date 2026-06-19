@@ -5,26 +5,28 @@
        WORKING-STORAGE SECTION.
        01  WS-BUY-CHOICE              PIC X.
        01  WS-VALID                   PIC X.
+       *> user-main.cbl ထဲက APP-DATA အပိုင်းကို ပြင်ဆင်ရန်
        01  APP-DATA.
+           *> --- UNIFIED EXACT MATCHING STRUCTURE ---
            05 APP-ID                  PIC 9(4) VALUE 1001.
            05 DEVICE-TYPE             PIC X(20).
-           05 DEVICE-MODEL            PIC X(20).
+           05 DEVICE-MODEL            PIC X(30).
            05 PURCHASE-PRICE          PIC 9(6).
            05 PURCHASE-DATE           PIC X(10).
            05 COVERAGE-PERIOD         PIC 9(2).
-           05 PLAN-NAME               PIC X(10).
            05 PREMIUM                 PIC 9(6).
+           05 PLAN-NAME               PIC X(10).
            05 USER-NAME               PIC X(30).
-           05 USER-EMAIL              PIC X(30).
+           05 USER-EMAIL              PIC X(20).
            05 USER-PHONE              PIC X(15).
            05 USER-POSTAL             PIC X(10).
            05 USER-ADDRESS            PIC X(50).
            05 USER-DOB                PIC X(10).
-           05 DEC-1                   PIC X.
-           05 DEC-2                   PIC X.
-           05 DEC-3                   PIC X.
-           05 DEC-4                   PIC X.
+           *> မေးခွန်း အခု ၂၀ အထိ Dynamic လက်ခံနိုင်ရန် ပြင်ဆင်ခြင်း
+           05 DEC-ANSWERS.
+              10 DEC-ANS              OCCURS 20 TIMES PIC X.
            05 APP-STATUS              PIC X(10).
+           05 FILLER                  PIC X(20).
 
        PROCEDURE DIVISION.
        MAIN-LOGIC.

@@ -15,7 +15,10 @@
 
        WORKING-STORAGE SECTION.
        01  WS-FILE-STATUS             PIC XX.
+       01  WS-IDX                     PIC 9(2).
+       01  WS-ANS-COUNT               PIC 9(2).
        
+   
        01  WS-HEADER-CSV.
            05 FILLER PIC X(5)  VALUE "AppID".
            05 FILLER PIC X     VALUE ",".
@@ -25,13 +28,7 @@
            05 FILLER PIC X     VALUE ",".
            05 FILLER PIC X(7)  VALUE "Premium".
            05 FILLER PIC X     VALUE ",".
-           05 FILLER PIC X(2)  VALUE "D1".
-           05 FILLER PIC X     VALUE ",".
-           05 FILLER PIC X(2)  VALUE "D2".
-           05 FILLER PIC X     VALUE ",".
-           05 FILLER PIC X(2)  VALUE "D3".
-           05 FILLER PIC X     VALUE ",".
-           05 FILLER PIC X(2)  VALUE "D4".
+           05 FILLER PIC X(20) VALUE "Answers".
            05 FILLER PIC X     VALUE ",".
            05 FILLER PIC X(6)  VALUE "Status".
 
@@ -44,13 +41,7 @@
            05 FILLER                  PIC X VALUE ",".
            05 WS-F-PREMIUM            PIC 9(6).
            05 FILLER                  PIC X VALUE ",".
-           05 WS-F-D1                 PIC X.
-           05 FILLER                  PIC X VALUE ",".
-           05 WS-F-D2                 PIC X.
-           05 FILLER                  PIC X VALUE ",".
-           05 WS-F-D3                 PIC X.
-           05 FILLER                  PIC X VALUE ",".
-           05 WS-F-D4                 PIC X.
+           05 WS-F-ANSWERS            PIC X(20).
            05 FILLER                  PIC X VALUE ",".
            05 WS-F-STATUS             PIC X(10).
 
@@ -66,40 +57,52 @@
            05 LS-PREMIUM              PIC 9(6).
            05 LS-PLAN-NAME            PIC X(10).
            05 LS-USER-NAME            PIC X(30).
-           05 LS-USER-EMAIL           PIC X(30).
+           05 LS-USER-EMAIL           PIC X(20).
            05 LS-USER-PHONE           PIC X(15).
            05 LS-USER-POSTAL          PIC X(10).
            05 LS-USER-ADDRESS         PIC X(50).
            05 LS-USER-DOB             PIC X(10).
-           05 LS-DEC-1                PIC X.
-           05 LS-DEC-2                PIC X.
-           05 LS-DEC-3                PIC X.
-           05 LS-DEC-4                PIC X.
+           *> Dynamic Answers Array (Matches Main Program)
+           05 LS-DEC-ANSWERS.
+              10 LS-DEC-ANS           OCCURS 20 TIMES PIC X.
            05 LS-STATUS               PIC X(10).
            05 FILLER                  PIC X(20).
 
        PROCEDURE DIVISION USING LS-APP-DATA.
+           
            MOVE LS-APP-ID TO WS-F-APP-ID.
            MOVE LS-PLAN-NAME TO WS-F-PLAN.
            MOVE LS-COVERAGE-PERIOD TO WS-F-PERIOD.
            MOVE LS-PREMIUM TO WS-F-PREMIUM.
-           MOVE LS-DEC-1 TO WS-F-D1.
-           MOVE LS-DEC-2 TO WS-F-D2.
-           MOVE LS-DEC-3 TO WS-F-D3.
-           MOVE LS-DEC-4 TO WS-F-D4.
            
-           *> Check if all declarations are 'Y'
-           IF FUNCTION UPPER-CASE(LS-DEC-1) = "Y" AND 
-              FUNCTION UPPER-CASE(LS-DEC-2) = "Y" AND 
-              FUNCTION UPPER-CASE(LS-DEC-3) = "Y" AND 
-              FUNCTION UPPER-CASE(LS-DEC-4) = "Y"
-               MOVE "REJECT" TO WS-F-STATUS
-           ELSE
+           MOVE SPACES TO WS-F-ANSWERS.
+           MOVE 0 TO WS-ANS-COUNT.
+           MOVE "REJECT" TO WS-F-STATUS.
+
+         
+           PERFORM VARYING WS-IDX FROM 1 BY 1 UNTIL WS-IDX > 20
+               IF LS-DEC-ANS(WS-IDX) NOT = SPACE
+                   ADD 1 TO WS-ANS-COUNT
+                   
+                   
+                   MOVE FUNCTION UPPER-CASE(LS-DEC-ANS(WS-IDX)) 
+                        TO WS-F-ANSWERS(WS-IDX:1)
+
+                 
+                   IF FUNCTION UPPER-CASE(LS-DEC-ANS(WS-IDX)) = "N"
+                       MOVE "PENDING" TO WS-F-STATUS
+                   END-IF
+               END-IF
+           END-PERFORM.
+
+          
+           IF WS-ANS-COUNT = 0
                MOVE "PENDING" TO WS-F-STATUS
            END-IF.
            
            MOVE WS-F-STATUS TO LS-STATUS.
 
+        
            OPEN INPUT PLAN-FILE.
            IF WS-FILE-STATUS = "35"
                OPEN OUTPUT PLAN-FILE

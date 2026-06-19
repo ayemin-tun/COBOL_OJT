@@ -58,6 +58,10 @@
        01  WS-REM-100                 PIC 9(4).
        01  WS-REM-400                 PIC 9(4).
        01  WS-QUOT                    PIC 9(4).
+       
+       *> Added for Future Date Check
+       01  WS-SYS-DATE                PIC 9(8).
+       01  WS-INPUT-DATE-NUM          PIC 9(8).
 
        01  WS-FORMATTED-REC.
            05 WS-F-APP-ID             PIC X(5).
@@ -78,20 +82,36 @@
 
        LINKAGE SECTION.
        01  LS-APP-DATA.
+           *> --- UNIFIED EXACT MATCHING STRUCTURE ---
            05 LS-APP-ID               PIC 9(4).
            05 LS-DEVICE-TYPE          PIC X(20).
            05 LS-DEVICE-MODEL         PIC X(30).
            05 LS-PURCHASE-PRICE       PIC 9(6).
            05 LS-PURCHASE-DATE        PIC X(10).
            05 LS-COVERAGE-PERIOD      PIC 9(2).
-           05 FILLER                  PIC X(168).
-
+           05 LS-PREMIUM              PIC 9(6).
+           05 LS-PLAN-NAME            PIC X(10).
+           05 LS-USER-NAME            PIC X(30).
+           05 LS-USER-EMAIL           PIC X(20).
+           05 LS-USER-PHONE           PIC X(15).
+           05 LS-USER-POSTAL          PIC X(10).
+           05 LS-USER-ADDRESS         PIC X(50).
+           05 LS-USER-DOB             PIC X(10).
+           05 LS-DEC-1                PIC X.
+           05 LS-DEC-2                PIC X.
+           05 LS-DEC-3                PIC X.
+           05 LS-DEC-4                PIC X.
+           05 LS-STATUS               PIC X(10).
+           05 FILLER                  PIC X(20).
+           
        PROCEDURE DIVISION USING LS-APP-DATA.
+           DISPLAY " ".
            DISPLAY "--- SCREEN 1: QUOTATION (DEVICE INFO) ---".
            
            *> Device Type Selection
            MOVE "N" TO WS-VALID.
            PERFORM UNTIL WS-VALID = "Y"
+               MOVE SPACES TO LS-DEVICE-TYPE
                DISPLAY "Enter Device Type (IOS / Android): "
                ACCEPT LS-DEVICE-TYPE
                
@@ -147,6 +167,7 @@
            *> Device Model Selection Validation
            MOVE "N" TO WS-VALID.
            PERFORM UNTIL WS-VALID = "Y"
+               MOVE SPACES TO WS-CHOICE-STR
                DISPLAY "Select Device Model (Enter Number): "
                ACCEPT WS-CHOICE-STR
                
@@ -179,6 +200,7 @@
            *> Purchase Price Validation
            MOVE "N" TO WS-VALID.
            PERFORM UNTIL WS-VALID = "Y"
+               MOVE SPACES TO WS-TEMP-PRICE
                DISPLAY "Enter Purchase Price (JPY): "
                ACCEPT WS-TEMP-PRICE
                
@@ -199,9 +221,10 @@
                END-IF
            END-PERFORM.
 
-           *> Purchase Date Validation (Format and Logic checking)
+           *> Purchase Date Validation (Format, Logic, and Future Date)
            MOVE "N" TO WS-VALID.
            PERFORM UNTIL WS-VALID = "Y"
+               MOVE SPACES TO LS-PURCHASE-DATE
                DISPLAY "Enter Purchase Date (YYYY-MM-DD): "
                ACCEPT LS-PURCHASE-DATE
                IF LS-PURCHASE-DATE = SPACES
@@ -256,6 +279,22 @@
                                DISPLAY "[Error] Invalid Day for month."
                                MOVE "N" TO WS-VALID
                            END-IF
+                           
+                           *> Future Date Check
+                           IF WS-VALID = "Y"
+                               ACCEPT WS-SYS-DATE FROM DATE YYYYMMDD
+                               
+                               COMPUTE WS-INPUT-DATE-NUM = 
+                                 (WS-DATE-YY * 10000) + 
+                                 (WS-DATE-MM * 100) + WS-DATE-DD
+                                 
+                               IF WS-INPUT-DATE-NUM > WS-SYS-DATE
+                                  DISPLAY "[Error] Future date is " &
+                                  "not allowed. Please enter"&
+                                  " a valid date."
+                                   MOVE "N" TO WS-VALID
+                               END-IF
+                           END-IF
                        END-IF
                    ELSE
                        DISPLAY "[Error] Invalid format. Use YYYY-MM-DD."
@@ -266,6 +305,7 @@
            *> Coverage Period Validation (Fixed to 12, 24, 36)
            MOVE "N" TO WS-VALID.
            PERFORM UNTIL WS-VALID = "Y"
+               MOVE SPACES TO WS-TEMP-PERIOD
                DISPLAY "Enter Coverage Period (12, 24, or 36 Months): "
                ACCEPT WS-TEMP-PERIOD
               
