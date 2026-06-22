@@ -35,9 +35,6 @@ export COB_LIBRARY_PATH=bin
 
 ## Batch Processing (Automation Scheduler)
 
-We use macOS `cron` (Crontab) to automate our insurance plan evaluation system (`BATCHRUN.cbl`) as a background process, simulating real-world Mainframe production environments.
-
-The automation script is located at the project root folder and evaluates pending applications every 1 minute.
 
 First run step by step before batch processing
 ``` bash
@@ -45,6 +42,13 @@ cobc -x BATCHRUN.cbl -o bin/BATCHRUN
  
 cd ../
 ```
+----------------------------------------------------------------------------------------------
+
+## FOR MAC 
+We use macOS `cron` (Crontab) to automate our insurance plan evaluation system (`BATCHRUN.cbl`) as a background process, simulating real-world Mainframe production environments.
+
+The automation script is located at the project root folder and evaluates pending applications every 1 minute.
+
 ### 1. Script Configuration
 
 The automation is handled by `run_batch.sh` at the root folder:
@@ -85,3 +89,21 @@ tail -f batch_result.log
 ```bash 
 crontab -r
 ```
+----------------------------------------------------------------------------------------
+
+## FOR WINDOW 
+
+In Window use While loop in git bash terminal using system file (`run_batch.bat`)
+run this folder on terminal on vscode (make sure the vs code is `Git Bash `)
+
+``` bash 
+
+while true; do ./run_batch.sh; echo "Batch run at $(date)"; sleep 30; done
+
+```
+
+for 30 second use 30, for 1 minute use 60 etc .....
+
+you can see `batch_result.log` file for ensuring the batch is successfully generate or not 
+
+If you want to stop the batch run Use Ctrl+C to stop the while loop
