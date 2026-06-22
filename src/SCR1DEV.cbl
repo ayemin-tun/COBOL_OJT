@@ -366,3 +366,4 @@
            DISPLAY "[System] Auto-Generated Application ID: " WS-NEW-ID.
 
            EXIT PROGRAM.
+           

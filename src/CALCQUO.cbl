@@ -69,3 +69,4 @@
            DISPLAY"Calculated Estimated Premium: "WS-PREMIUM-DISP" JPY".
 
            EXIT PROGRAM.
+           
