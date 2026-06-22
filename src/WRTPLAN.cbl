@@ -1,4 +1,4 @@
-IDENTIFICATION DIVISION.
+       IDENTIFICATION DIVISION.
        PROGRAM-ID. WRTPLAN.
 
        ENVIRONMENT DIVISION.
@@ -11,7 +11,6 @@ IDENTIFICATION DIVISION.
        DATA DIVISION.
        FILE SECTION.
        FD  PLAN-FILE.
-       *> --- ပမာဏကို ၁၅၀ ထားပေးပါ ---
        01  PLAN-REC                   PIC X(150).
 
        WORKING-STORAGE SECTION.
@@ -102,18 +101,14 @@ IDENTIFICATION DIVISION.
            MOVE WS-F-STATUS TO LS-STATUS.
            MOVE LS-TOTAL-SCORE TO WS-F-TOTAL-SCORE.
         
-           *> --- ပြင်ဆင်လိုက်သော FILE OPEN LOGIC ---
-           *> အရင်ဆုံး EXTEND (ဖိုင်ရှိရင် နောက်ကဆက်ရေးဖို့) စမ်းဖွင့်ကြည့်မယ်
            OPEN EXTEND PLAN-FILE.
            
-           *> ဖိုင်လုံးဝမရှိသေးရင် (Status 35 ပြရင်) OUTPUT နဲ့ အသစ်ဆောက်မယ်
            IF WS-FILE-STATUS = "35"
                OPEN OUTPUT PLAN-FILE
                WRITE PLAN-REC FROM WS-HEADER-CSV
                WRITE PLAN-REC FROM WS-FORMATTED-REC
                CLOSE PLAN-FILE
            ELSE
-               *> ဖိုင်ရှိပြီးသားမို့လို့ EXTEND ပွင့်နေတဲ့ထဲကို တန်းရေးမယ်
                WRITE PLAN-REC FROM WS-FORMATTED-REC
                CLOSE PLAN-FILE
            END-IF.
