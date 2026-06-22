@@ -4,8 +4,8 @@
 
 - First go to src folder in terminal 
 
-```
-    cd src
+```bash
+cd src
 ```
 
 - Run the main program:
@@ -18,7 +18,7 @@ mkdir -p bin && for f in *.cbl; do cobc -m "$f" -o "bin/$(basename "$f" .cbl).dy
 In window run this frist 
 
 ```bash 
-    if not exist bin mkdir bin && cobc -m *.cbl -o bin/
+if not exist bin mkdir bin && cobc -m *.cbl -o bin/
 ```
 - And then run this 
 
@@ -28,9 +28,9 @@ In window run this frist
 
 - For run the program run this in terminal 
 
-```
-   export COB_LIBRARY_PATH=bin
-   ./bin/user-main
+```bash
+export COB_LIBRARY_PATH=bin
+./bin/user-main
 ```
 
 ## Batch Processing (Automation Scheduler)
@@ -46,7 +46,7 @@ The automation is handled by `run_batch.sh` at the root folder:
 Make sure to give executable permission to the script:
 
 ```bash
-    chmod +x run_batch.sh
+chmod +x run_batch.sh
 ```
 
 ### 2.Setup Cron Job (1-Minute Interval)
@@ -66,7 +66,7 @@ use your project folder location using pwd in terminal
 - Press Esc, type :wq and hit Enter to save and exit.
 💡 Verify if the job is successfully installed by running:
 ```bash
-  crontab -l
+crontab -l
   ```
 
 ### 3.Monitoring & Stopping
