@@ -50,7 +50,7 @@
        PROCEDURE DIVISION.
        MAIN-PROCESS.
            DISPLAY " "
-           DISPLAY "=== STARTING BATCH PROCESS (ARRAY VERSION) ==="
+           DISPLAY "=== STARTING BATCH PROCESS ==="
 
            *> --------------------------------------------------------
            *> (1) add file data into array table 
@@ -87,7 +87,7 @@
            END-PERFORM.
            CLOSE IN-FILE.
 
-           DISPLAY "[Batch] Read " WS-ROW-COUNT " records into memory."
+           DISPLAY "[Batch] Read records into memory."
 
            *> --------------------------------------------------------
            *> (2) check status 
@@ -105,7 +105,7 @@
            *> --------------------------------------------------------
            *> OVER WRITE FILE 
            *> --------------------------------------------------------
-           DISPLAY "[Batch] Overwriting plan.csv with updated status..."
+           DISPLAY "[Batch] Updating plan.csv with updated status..."
            OPEN OUTPUT IN-FILE.
 
            *> HEader rewrite 
