@@ -106,4 +106,4 @@ for 30 second use 30, for 1 minute use 60 etc .....
 
 you can see `batch_result.log` file for ensuring the batch is successfully generate or not 
 
-If you want to stop the batch run Use Ctrl+C to stop the while loop
+If you want to stop the batch run Use `Ctrl+C` to stop the while loop
