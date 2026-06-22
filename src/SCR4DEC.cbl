@@ -23,10 +23,13 @@
        *> Variables for unstringing the CSV
        01  WS-Q-ID                    PIC X(2).
        01  WS-Q-TEXT                  PIC X(80).
+       01  WS-Q-SCORE                 PIC 9(3).
        
        *> Array to store the questions dynamically (Up to 20 questions)
        01  WS-QUESTIONS-TABLE.
-           05 WS-QUESTION OCCURS 20 TIMES PIC X(80).
+           05 WS-Q-ENTRY OCCURS 20 TIMES.
+               10 WS-QUESTION PIC X(80).
+               10 WS-SCORE PIC 9(3).
            
        01  WS-Q-COUNT                 PIC 9(2) VALUE 0.
        01  WS-IDX                     PIC 9(2).
@@ -52,7 +55,8 @@
            05 LS-DEC-ANSWERS.
               10 LS-DEC-ANS           OCCURS 20 TIMES PIC X.
            05 LS-STATUS               PIC X(10).
-           05 FILLER                  PIC X(20).
+           05 LS-TOTAL-SCORE          PIC 9(3) VALUE 0. 
+           05 FILLER                  PIC X(17). 
 
        PROCEDURE DIVISION USING LS-APP-DATA.
            DISPLAY " ".
@@ -74,21 +78,26 @@
                    NOT AT END
                        *> Extract only the question text
                        UNSTRING QUESTION-REC DELIMITED BY ","
-                           INTO WS-Q-ID WS-Q-TEXT
+                           INTO WS-Q-ID WS-Q-TEXT WS-Q-SCORE
                            
                        ADD 1 TO WS-Q-COUNT
-                       MOVE WS-Q-TEXT TO WS-QUESTION(WS-Q-COUNT)
+                       MOVE WS-Q-TEXT TO WS-QUESTION OF
+                        WS-Q-ENTRY(WS-Q-COUNT)
+                       MOVE FUNCTION NUMVAL(WS-Q-SCORE) 
+                            TO WS-SCORE OF WS-Q-ENTRY(WS-Q-COUNT)
                END-READ
            END-PERFORM.
            CLOSE QUESTION-FILE.
-
+           
+           MOVE 0 TO LS-TOTAL-SCORE.
            *> (2) Dynamic Loop based on actual number of questions (WS-Q-COUNT)
            PERFORM VARYING WS-IDX FROM 1 BY 1 UNTIL WS-IDX > WS-Q-COUNT
                MOVE "N" TO WS-VALID
                PERFORM UNTIL WS-VALID = "Y"
                    
                    *> Display the question dynamically
-                   DISPLAY FUNCTION TRIM(WS-QUESTION(WS-IDX))
+                   DISPLAY FUNCTION TRIM(WS-QUESTION 
+                   OF WS-Q-ENTRY(WS-IDX))
                    ACCEPT WS-TEMP-ANS
                    
                    *> Convert to Uppercase
@@ -98,6 +107,13 @@
                        MOVE "Y" TO WS-VALID
                        *> Save answer to the correct index in Linkage Array
                        MOVE WS-TEMP-ANS TO LS-DEC-ANS(WS-IDX)
+                       
+                       *> Add score if answer is "Y"
+                       IF WS-TEMP-ANS = "Y"
+                           ADD WS-SCORE OF WS-Q-ENTRY(WS-IDX) 
+                           TO LS-TOTAL-SCORE
+                       END-IF
+
                    ELSE
                        DISPLAY "[Error] Please enter Y or N."
                    END-IF

@@ -26,7 +26,8 @@
            05 DEC-ANSWERS.
               10 DEC-ANS              OCCURS 20 TIMES PIC X.
            05 APP-STATUS              PIC X(10).
-           05 FILLER                  PIC X(20).
+           05 TOTAL-SCORE             PIC 9(3) VALUE 0. 
+           05 FILLER                  PIC X(17).
 
        PROCEDURE DIVISION.
        MAIN-LOGIC.

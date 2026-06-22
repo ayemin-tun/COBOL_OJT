@@ -1,4 +1,4 @@
-1,Is the device already damaged? (Y/N): 
-2,Is the screen cracked? (Y/N): 
-3,Has the device been water-damaged? (Y/N): 
-4,Was the device purchased > 1 year ago? (Y/N):
+1,Is the device already damaged? (Y/N):,50
+2,Is the screen cracked? (Y/N):,30
+3,Has the device been water-damaged? (Y/N):,40
+4,Was the device purchased > 1 year ago? (Y/N):,20

@@ -1,4 +1,4 @@
-       IDENTIFICATION DIVISION.
+IDENTIFICATION DIVISION.
        PROGRAM-ID. WRTPLAN.
 
        ENVIRONMENT DIVISION.
@@ -11,14 +11,14 @@
        DATA DIVISION.
        FILE SECTION.
        FD  PLAN-FILE.
-       01  PLAN-REC                   PIC X(120).
+       *> --- ပမာဏကို ၁၅၀ ထားပေးပါ ---
+       01  PLAN-REC                   PIC X(150).
 
        WORKING-STORAGE SECTION.
        01  WS-FILE-STATUS             PIC XX.
        01  WS-IDX                     PIC 9(2).
        01  WS-ANS-COUNT               PIC 9(2).
        
-   
        01  WS-HEADER-CSV.
            05 FILLER PIC X(5)  VALUE "AppID".
            05 FILLER PIC X     VALUE ",".
@@ -31,6 +31,8 @@
            05 FILLER PIC X(20) VALUE "Answers".
            05 FILLER PIC X     VALUE ",".
            05 FILLER PIC X(6)  VALUE "Status".
+           05 FILLER PIC X     VALUE ",".
+           05 FILLER PIC X(5)  VALUE "Score".
 
        01  WS-FORMATTED-REC.
            05 WS-F-APP-ID             PIC 9(4).
@@ -44,10 +46,11 @@
            05 WS-F-ANSWERS            PIC X(20).
            05 FILLER                  PIC X VALUE ",".
            05 WS-F-STATUS             PIC X(10).
+           05 FILLER                  PIC X VALUE ",".
+           05 WS-F-TOTAL-SCORE        PIC 9(3).
 
        LINKAGE SECTION.
        01  LS-APP-DATA.
-           *> --- UNIFIED EXACT MATCHING STRUCTURE ---
            05 LS-APP-ID               PIC 9(4).
            05 LS-DEVICE-TYPE          PIC X(20).
            05 LS-DEVICE-MODEL         PIC X(30).
@@ -62,11 +65,11 @@
            05 LS-USER-POSTAL          PIC X(10).
            05 LS-USER-ADDRESS         PIC X(50).
            05 LS-USER-DOB             PIC X(10).
-           *> Dynamic Answers Array (Matches Main Program)
            05 LS-DEC-ANSWERS.
               10 LS-DEC-ANS           OCCURS 20 TIMES PIC X.
            05 LS-STATUS               PIC X(10).
-           05 FILLER                  PIC X(20).
+           05 LS-TOTAL-SCORE          PIC 9(3). 
+           05 FILLER                  PIC X(17).
 
        PROCEDURE DIVISION USING LS-APP-DATA.
            
@@ -79,39 +82,38 @@
            MOVE 0 TO WS-ANS-COUNT.
            MOVE "REJECT" TO WS-F-STATUS.
 
-         
            PERFORM VARYING WS-IDX FROM 1 BY 1 UNTIL WS-IDX > 20
                IF LS-DEC-ANS(WS-IDX) NOT = SPACE
                    ADD 1 TO WS-ANS-COUNT
                    
-                   
                    MOVE FUNCTION UPPER-CASE(LS-DEC-ANS(WS-IDX)) 
                         TO WS-F-ANSWERS(WS-IDX:1)
 
-                 
                    IF FUNCTION UPPER-CASE(LS-DEC-ANS(WS-IDX)) = "N"
                        MOVE "PENDING" TO WS-F-STATUS
                    END-IF
                END-IF
            END-PERFORM.
 
-          
            IF WS-ANS-COUNT = 0
                MOVE "PENDING" TO WS-F-STATUS
            END-IF.
            
            MOVE WS-F-STATUS TO LS-STATUS.
-
+           MOVE LS-TOTAL-SCORE TO WS-F-TOTAL-SCORE.
         
-           OPEN INPUT PLAN-FILE.
+           *> --- ပြင်ဆင်လိုက်သော FILE OPEN LOGIC ---
+           *> အရင်ဆုံး EXTEND (ဖိုင်ရှိရင် နောက်ကဆက်ရေးဖို့) စမ်းဖွင့်ကြည့်မယ်
+           OPEN EXTEND PLAN-FILE.
+           
+           *> ဖိုင်လုံးဝမရှိသေးရင် (Status 35 ပြရင်) OUTPUT နဲ့ အသစ်ဆောက်မယ်
            IF WS-FILE-STATUS = "35"
                OPEN OUTPUT PLAN-FILE
                WRITE PLAN-REC FROM WS-HEADER-CSV
                WRITE PLAN-REC FROM WS-FORMATTED-REC
                CLOSE PLAN-FILE
            ELSE
-               CLOSE PLAN-FILE
-               OPEN EXTEND PLAN-FILE
+               *> ဖိုင်ရှိပြီးသားမို့လို့ EXTEND ပွင့်နေတဲ့ထဲကို တန်းရေးမယ်
                WRITE PLAN-REC FROM WS-FORMATTED-REC
                CLOSE PLAN-FILE
            END-IF.

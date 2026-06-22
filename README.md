@@ -11,7 +11,7 @@
 - Run the main program:
 In Mac run this first 
 ```bash
-    mkdir -p bin for f in *.cbl; do cobc -m "$f" -o "bin/$(basename "$f" .cbl).dylib"; done
+mkdir -p bin && for f in *.cbl; do cobc -m "$f" -o "bin/$(basename "$f" .cbl).dylib"; done
 
 ```
 
