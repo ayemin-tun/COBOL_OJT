@@ -3,7 +3,9 @@
 *.dll
 *.exe
 *.so
-result/
 bin/
 *.dylib
 *.log
+device.csv
+plan.csv
+user.csv

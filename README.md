@@ -39,6 +39,12 @@ We use macOS `cron` (Crontab) to automate our insurance plan evaluation system (
 
 The automation script is located at the project root folder and evaluates pending applications every 1 minute.
 
+First run step by step before batch processing
+``` bash
+cobc -x BATCHRUN.cbl -o bin/BATCHRUN 
+ 
+cd ../
+```
 ### 1. Script Configuration
 
 The automation is handled by `run_batch.sh` at the root folder:
