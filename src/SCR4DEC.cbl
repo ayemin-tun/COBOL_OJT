@@ -5,7 +5,7 @@
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
            *> Connect to the CSV file
-           SELECT OPTIONAL QUESTION-FILE ASSIGN TO "questions.csv"
+           SELECT OPTIONAL QUESTION-FILE ASSIGN TO "data/questions.csv"
                ORGANIZATION IS LINE SEQUENTIAL
                FILE STATUS IS WS-FILE-STATUS.
 

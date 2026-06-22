@@ -44,7 +44,7 @@
                    MOVE 1.0 TO WS-MULTIPLIER
            END-EVALUATE.
 
-           *> 2. Determine Plan Multiplier (Matches Screen 2 Logic)
+          
            EVALUATE FUNCTION UPPER-CASE(FUNCTION TRIM(LS-PLAN-NAME))
                WHEN "LIGHT"
                    MOVE 1.0 TO WS-PLAN-MULT

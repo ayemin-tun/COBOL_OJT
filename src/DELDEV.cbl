@@ -4,9 +4,9 @@
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT DEVICE-FILE ASSIGN TO "device.csv"
+           SELECT DEVICE-FILE ASSIGN TO "data/device.csv"
                ORGANIZATION IS LINE SEQUENTIAL.
-           SELECT TEMP-FILE ASSIGN TO "temp_del.csv"
+           SELECT TEMP-FILE ASSIGN TO "tmp/temp_del.csv"
                ORGANIZATION IS LINE SEQUENTIAL.
 
        DATA DIVISION.

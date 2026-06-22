@@ -4,7 +4,8 @@
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT OPTIONAL PLAN-DEF-FILE ASSIGN TO "plan_master.csv"
+           SELECT OPTIONAL PLAN-DEF-FILE 
+           ASSIGN TO "data/plan_master.csv"
                ORGANIZATION IS LINE SEQUENTIAL
                FILE STATUS IS WS-FILE-STATUS.
 
@@ -144,7 +145,7 @@
                    DISPLAY "-------------------------------------------"
                END-PERFORM
                
-               *> (၃) User ဆီမှ Plan အမည်ကို ရွေးခိုင်းခြင်း
+              
                MOVE "N" TO WS-VALID
                PERFORM UNTIL WS-VALID = "Y"
                    DISPLAY "Enter Selected Plan Name: "
@@ -170,7 +171,7 @@
                    END-IF
                END-PERFORM
                
-               *> (၄) Confirmation Step (Y/N)
+           
                MOVE "N" TO WS-VALID
                PERFORM UNTIL WS-VALID = "Y"
                    DISPLAY "Confirm your selected plan? (Y/N): "
@@ -194,3 +195,4 @@
            END-PERFORM.
            
            EXIT PROGRAM.
+           

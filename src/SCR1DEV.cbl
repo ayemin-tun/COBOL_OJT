@@ -4,11 +4,11 @@
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT OPTIONAL DEVICE-FILE ASSIGN TO "device.csv"
+           SELECT OPTIONAL DEVICE-FILE ASSIGN TO "result/device.csv"
                ORGANIZATION IS LINE SEQUENTIAL
                FILE STATUS IS WS-FILE-STATUS.
                
-           SELECT OPTIONAL MODEL-FILE ASSIGN TO "models.csv"
+           SELECT OPTIONAL MODEL-FILE ASSIGN TO "data/models.csv"
                ORGANIZATION IS LINE SEQUENTIAL
                FILE STATUS IS WS-MODEL-STATUS.
 
@@ -158,7 +158,8 @@
                                 TO WS-M-NUM(WS-MODEL-COUNT)
                            MOVE WS-IN-NAME TO WS-M-NAME(WS-MODEL-COUNT)
                            
-                           DISPLAY WS-IN-NUM"."FUNCTION TRIM(WS-IN-NAME)
+                           DISPLAY 
+                           "[ " WS-IN-NUM"] "FUNCTION TRIM(WS-IN-NAME)
                        END-IF
                END-READ
            END-PERFORM.

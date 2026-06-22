@@ -4,7 +4,7 @@
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT PLAN-FILE ASSIGN TO "plan.csv"
+           SELECT PLAN-FILE ASSIGN TO "result/plan.csv"
                ORGANIZATION IS LINE SEQUENTIAL
                FILE STATUS IS WS-FILE-STATUS.
 

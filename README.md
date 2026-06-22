@@ -2,14 +2,34 @@
 
 ## Build and Run
 
+- First go to src folder in terminal 
+
+```
+    cd src
+```
+
 - Run the main program:
-
+In Mac run this first 
 ```bash
-cobc -x user-main.cbl -o ./bin/
+    mkdir -p bin && for f in *.cbl; do cobc -m "$f" -o "bin/$(basename "$f" .cbl).dylib"; done
 ```
 
-- Run the sub program:
+In window run this frist 
 
-```bash
-cobc -m sub-program.cbl -o ./bin/
+```bash 
+    if not exist bin mkdir bin && cobc -m *.cbl -o bin/
 ```
+- And then run this 
+
+```
+    cobc -x user-main.cbl -o bin/user-main 
+```
+
+- And then go to the folder bin and run user-main file 
+
+```
+    cd bin
+    cobc -x user-main.cbl -o bin/user-main 
+```
+
+

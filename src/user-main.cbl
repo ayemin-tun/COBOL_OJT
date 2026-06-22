@@ -5,9 +5,9 @@
        WORKING-STORAGE SECTION.
        01  WS-BUY-CHOICE              PIC X.
        01  WS-VALID                   PIC X.
-       *> user-main.cbl ထဲက APP-DATA အပိုင်းကို ပြင်ဆင်ရန်
+      
        01  APP-DATA.
-           *> --- UNIFIED EXACT MATCHING STRUCTURE ---
+      
            05 APP-ID                  PIC 9(4) VALUE 1001.
            05 DEVICE-TYPE             PIC X(20).
            05 DEVICE-MODEL            PIC X(30).
@@ -22,7 +22,7 @@
            05 USER-POSTAL             PIC X(10).
            05 USER-ADDRESS            PIC X(50).
            05 USER-DOB                PIC X(10).
-           *> မေးခွန်း အခု ၂၀ အထိ Dynamic လက်ခံနိုင်ရန် ပြင်ဆင်ခြင်း
+        
            05 DEC-ANSWERS.
               10 DEC-ANS              OCCURS 20 TIMES PIC X.
            05 APP-STATUS              PIC X(10).

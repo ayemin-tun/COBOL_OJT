@@ -4,11 +4,11 @@
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT OPTIONAL USER-FILE ASSIGN TO "user.csv"
+           SELECT OPTIONAL USER-FILE ASSIGN TO "result/user.csv"
               ORGANIZATION IS LINE SEQUENTIAL
               FILE STATUS IS WS-FILE-STATUS.
                
-           SELECT OPTIONAL DEVICE-FILE ASSIGN TO "device.csv"
+           SELECT OPTIONAL DEVICE-FILE ASSIGN TO "result/device.csv"
               ORGANIZATION IS LINE SEQUENTIAL
               FILE STATUS IS WS-DEV-STATUS.
 
