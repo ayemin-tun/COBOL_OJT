@@ -28,8 +28,9 @@ In window run this frist
 - And then go to the folder bin and run user-main file 
 
 ```
+    cobc -x user-main.cbl
     cd bin
-    cobc -x user-main.cbl -o bin/user-main 
+    ./user-main
 ```
 
 
