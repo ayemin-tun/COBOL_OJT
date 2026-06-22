@@ -11,7 +11,8 @@
 - Run the main program:
 In Mac run this first 
 ```bash
-    mkdir -p bin && for f in *.cbl; do cobc -m "$f" -o "bin/$(basename "$f" .cbl).dylib"; done
+    mkdir -p bin for f in *.cbl; do cobc -m "$f" -o "bin/$(basename "$f" .cbl).dylib"; done
+
 ```
 
 In window run this frist 
@@ -25,12 +26,11 @@ In window run this frist
     cobc -x user-main.cbl -o bin/user-main 
 ```
 
-- And then go to the folder bin and run user-main file 
+- For run the program run this in terminal 
 
 ```
-    cobc -x user-main.cbl
-    cd bin
-    ./user-main
+   export COB_LIBRARY_PATH=bin
+   ./bin/user-main
 ```
 
 

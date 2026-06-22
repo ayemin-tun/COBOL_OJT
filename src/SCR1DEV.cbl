@@ -151,7 +151,8 @@
                            INTO WS-IN-TYPE WS-IN-NUM WS-IN-NAME
                            
                        IF FUNCTION UPPER-CASE(FUNCTION TRIM(WS-IN-TYPE)) 
-                          = FUNCTION TRIM(LS-DEVICE-TYPE)
+                          = FUNCTION UPPER-CASE
+                          (FUNCTION TRIM(LS-DEVICE-TYPE))
                            
                            ADD 1 TO WS-MODEL-COUNT
                            MOVE FUNCTION NUMVAL(WS-IN-NUM) 
