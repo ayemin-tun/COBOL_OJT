@@ -12,6 +12,10 @@
               ORGANIZATION IS LINE SEQUENTIAL
               FILE STATUS IS WS-DEV-STATUS.
 
+           SELECT OPTIONAL PLAN-FILE ASSIGN TO "result/plan.csv"
+              ORGANIZATION IS LINE SEQUENTIAL
+              FILE STATUS IS WS-DEV-STATUS.
+
        DATA DIVISION.
        FILE SECTION.
        FD  USER-FILE.
@@ -19,6 +23,9 @@
        
        FD  DEVICE-FILE.
        01  DEVICE-REC                 PIC X(120).
+
+       FD  PLAN-FILE.
+       01  PLAN-REC                   PIC X(120).
 
        WORKING-STORAGE SECTION.
        01  WS-FILE-STATUS             PIC XX.
@@ -64,6 +71,18 @@
        01  WS-READ-D-PRICE            PIC X(15).
        01  WS-READ-D-DATE             PIC X(10).
        01  WS-READ-D-PERIOD           PIC X(3).
+       01  WS-READ-D-STATUS           PIC X(10).
+       
+       01  WS-READ-P-APPID            PIC X(4).
+       01  WS-READ-P-PLANNAME         PIC X(10).
+       01  WS-READ-P-PERIOD           PIC 9(2).
+       01  WS-READ-P-PREMIUM          PIC 9(6).
+       01  WS-READ-P-ANSWER           PIC X(20).
+       01  WS-READ-P-STATUS           PIC X(10).
+       01  WS-READ-P-SCORE            PIC 9(3).
+       01  WS-IS-REJECTED             PIC X(01) VALUE 'N'.
+       01  WS-PLAN-EOF                PIC X(01) VALUE 'N'.
+       01  WS-PLAN-STATUS             PIC X(02).
 
        01  WS-EXP-YYYY                PIC 9(4).
        01  WS-EXP-MM                  PIC 9(2).
@@ -401,7 +420,13 @@
                     
                     IF FUNCTION TRIM(WS-READ-U-EMAIL) = 
                        FUNCTION TRIM(LS-USER-EMAIL)
-                       PERFORM CHECK-DEVICE-FILE
+                       
+                       PERFORM CHECK-PLAN-FILE
+                       
+                       IF WS-IS-REJECTED = "N"
+                          PERFORM CHECK-DEVICE-FILE
+                       END-IF
+                       
                     END-IF
                  END-READ
               END-PERFORM
@@ -415,6 +440,40 @@
            ELSE
               MOVE "Y" TO WS-VALID
            END-IF.
+
+
+       CHECK-PLAN-FILE.
+           MOVE "N" TO WS-IS-REJECTED.
+           OPEN INPUT PLAN-FILE.
+           IF WS-PLAN-STATUS NOT = "35"
+              MOVE "N" TO WS-PLAN-EOF
+              PERFORM UNTIL WS-PLAN-EOF = "Y"
+                 READ PLAN-FILE INTO PLAN-REC
+                 AT END
+                    MOVE "Y" TO WS-PLAN-EOF
+                 NOT AT END
+                    UNSTRING PLAN-REC DELIMITED BY ","
+                       INTO WS-READ-P-APPID WS-READ-P-PLANNAME
+                            WS-READ-P-PERIOD WS-READ-P-PREMIUM
+                            WS-READ-P-ANSWER WS-READ-P-STATUS
+                            WS-READ-P-SCORE
+                    
+                    IF FUNCTION TRIM(WS-READ-P-APPID) = 
+                       FUNCTION TRIM(WS-READ-U-APPID)
+                       
+                       *> Status သည် Reject ဖြစ်နေလျှင်
+                       IF FUNCTION TRIM(WS-READ-P-STATUS) = "REJECT"
+                       OR FUNCTION TRIM(WS-READ-P-STATUS) = "REJECTED"
+                          MOVE "Y" TO WS-IS-REJECTED
+                       END-IF
+                       
+                       MOVE "Y" TO WS-PLAN-EOF
+                    END-IF
+                 END-READ
+              END-PERFORM
+              CLOSE PLAN-FILE
+           END-IF.
+
 
        CHECK-DEVICE-FILE.
            OPEN INPUT DEVICE-FILE.
@@ -432,6 +491,7 @@
                     
                     IF FUNCTION TRIM(WS-READ-D-APPID) = 
                        FUNCTION TRIM(WS-READ-U-APPID)
+                       
                        PERFORM CALCULATE-EXPIRY
                        MOVE "Y" TO WS-DEV-EOF
                     END-IF
@@ -439,6 +499,31 @@
               END-PERFORM
               CLOSE DEVICE-FILE
            END-IF.
+
+      *CHECK-DEVICE-FILE.
+      *    OPEN INPUT DEVICE-FILE.
+      *    IF WS-DEV-STATUS NOT = "35"
+      *       MOVE "N" TO WS-DEV-EOF
+      *       PERFORM UNTIL WS-DEV-EOF = "Y"
+      *          READ DEVICE-FILE INTO DEVICE-REC
+      *          AT END
+      *             MOVE "Y" TO WS-DEV-EOF
+      *          NOT AT END
+      *             UNSTRING DEVICE-REC DELIMITED BY ","
+      *                INTO WS-READ-D-APPID WS-READ-D-TYPE
+      *                     WS-READ-D-MODEL WS-READ-D-PRICE
+      *                     WS-READ-D-DATE WS-READ-D-PERIOD
+      *             
+      *             IF FUNCTION TRIM(WS-READ-D-APPID) = 
+      *                FUNCTION TRIM(WS-READ-U-APPID)
+      *                PERFORM CALCULATE-EXPIRY
+      *                MOVE "Y" TO WS-DEV-EOF
+      *             END-IF
+      *          END-READ
+      *       END-PERFORM
+      *       CLOSE DEVICE-FILE
+      *    END-IF.
+       
 
        CALCULATE-EXPIRY.
            IF WS-READ-U-REGDATE(5:1) = "-"
