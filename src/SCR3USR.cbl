@@ -24,6 +24,15 @@
        01  WS-FILE-STATUS             PIC XX.
        01  WS-DEV-STATUS              PIC XX.
        01  WS-VALID                   PIC X.
+
+      *japanese character count
+       01  WS-PHONE-I         PIC 99.
+       01  WS-CHAR            PIC X.
+       01  WS-INVALID         PIC X.
+       01  WS-PHONE-LEN-J     PIC 99.
+       01  WS-JAPANESE-FOUND  PIC X(01) VALUE "N".
+       01  WS-TEMP-PHONE     PIC X(15) VALUE SPACES.
+       01  WS-EMAIL-TALLY    PIC 99.
        
        01  WS-TEMP-ADDRESS            PIC X(100).
        01  WS-PHONE-LEN               PIC 9(2).
@@ -137,70 +146,127 @@
            MOVE "N" TO WS-VALID.
            PERFORM UNTIL WS-VALID = "Y"
               MOVE SPACES TO LS-USER-EMAIL  
+              
               DISPLAY "Enter Email Address: "
               ACCEPT LS-USER-EMAIL
               
-              IF LS-USER-EMAIL = SPACES
+              IF FUNCTION TRIM(LS-USER-EMAIL) = SPACES
                  DISPLAY "[Error] Email cannot be empty."
               ELSE
-                 PERFORM VALIDATE-EMAIL-AND-CHECK-EXPIRY
+                 MOVE "N" TO WS-INVALID
+                 MOVE 0 TO WS-EMAIL-TALLY
+                 
+                 INSPECT LS-USER-EMAIL TALLYING WS-EMAIL-TALLY
+                         FOR ALL X"EF" ALL X"E3"
+                 
+                 IF WS-EMAIL-TALLY > 0
+                    DISPLAY "Japanese characters are not allowed."
+                    MOVE "Y" TO WS-INVALID
+                 END-IF
+                 
+                 IF WS-INVALID = "N"
+                    PERFORM VALIDATE-EMAIL-AND-CHECK-EXPIRY
+                 ELSE
+                    MOVE SPACES TO LS-USER-EMAIL
+                 END-IF
               END-IF
            END-PERFORM.
+
 
            *> --- Phone Number Validation ---
-           MOVE "N" TO WS-VALID.
+           MOVE "N" TO WS-VALID
            PERFORM UNTIL WS-VALID = "Y"
               MOVE SPACES TO LS-USER-PHONE
-              DISPLAY "Enter Phone Number (10 to 11 digits): "
+              MOVE SPACES TO WS-TEMP-PHONE
+              
+              DISPLAY "Enter Phone Number (10-11 digits): "
               ACCEPT LS-USER-PHONE
-              IF LS-USER-PHONE = SPACES
+                             
+              IF FUNCTION TRIM(LS-USER-PHONE) = SPACES
                  DISPLAY "[Error] Phone cannot be empty."
               ELSE
-                 IF FUNCTION TEST-NUMVAL(FUNCTION TRIM(LS-USER-PHONE)) 
-                    > 0
-                    DISPLAY "[Error] Phone must contain only numbers."
+                 MOVE "N" TO WS-INVALID
+                 MOVE 0 TO WS-PHONE-LEN-J
+                 
+                 INSPECT LS-USER-PHONE TALLYING WS-PHONE-LEN-J
+                          FOR ALL X"EF" ALL X"E3"
+                 
+                 IF WS-PHONE-LEN-J > 0
+                    DISPLAY "Err : Japanese characters are not allowed."
+                    MOVE "Y" TO WS-INVALID
                  ELSE
-                    MOVE 15 TO WS-PHONE-LEN
-                    PERFORM VARYING WS-I FROM 15 BY -1 
-                    UNTIL WS-I = 0 OR LS-USER-PHONE(WS-I:1) NOT = SPACE
-                       SUBTRACT 1 FROM WS-PHONE-LEN
-                    END-PERFORM
-                       
-                    IF WS-PHONE-LEN < 10 OR WS-PHONE-LEN > 11
-                       DISPLAY "[Error] Phone must be 10-11 digits."
+                    IF FUNCTION TRIM(LS-USER-PHONE) NOT NUMERIC
+                       DISPLAY "Phone must contain only numbers (0-9)."
+                       DISPLAY "Letters or symbols are not allowed."
+                       MOVE "Y" TO WS-INVALID
                     ELSE
-                       MOVE "Y" TO WS-VALID
+                       MOVE FUNCTION LENGTH
+                       (FUNCTION TRIM(LS-USER-PHONE)) 
+                         TO WS-PHONE-LEN-J
+                         
+                       IF WS-PHONE-LEN-J < 10 OR WS-PHONE-LEN-J > 11
+                          DISPLAY "Phone must be  10 or 11 digits."
+                          MOVE "Y" TO WS-INVALID
+                       END-IF
                     END-IF
+                 END-IF
+                 
+                 IF WS-INVALID = "Y"
+                    MOVE SPACES TO LS-USER-PHONE
+                 ELSE
+                    MOVE "Y" TO WS-VALID
                  END-IF
               END-IF
            END-PERFORM.
 
+           
            *> --- Postal Code Validation ---
-           MOVE "N" TO WS-VALID.
+           MOVE "N" TO WS-VALID
            PERFORM UNTIL WS-VALID = "Y"
               MOVE SPACES TO LS-USER-POSTAL
+              
               DISPLAY "Enter Postal Code (5 to 7 digits): "
               ACCEPT LS-USER-POSTAL
-              IF LS-USER-POSTAL = SPACES
-                 DISPLAY "[Error] Postal Code cannot be empty."
-              ELSE
-                 IF FUNCTION TEST-NUMVAL(FUNCTION TRIM(LS-USER-POSTAL))
-                    > 0
-                    DISPLAY "[Error] Postal must contain only numbers."
-                 ELSE
-                    MOVE 10 TO WS-POSTAL-LEN
-                    PERFORM VARYING WS-I FROM 10 BY -1 
-                    UNTIL WS-I=0 OR LS-USER-POSTAL(WS-I:1) NOT = SPACE
-                       SUBTRACT 1 FROM WS-POSTAL-LEN
-                    END-PERFORM
-                       
-                    IF WS-POSTAL-LEN < 5 OR WS-POSTAL-LEN > 7
-                       DISPLAY "[Error] Postal must be 5-7 digits."
-                    ELSE
-                       MOVE "Y" TO WS-VALID
-                    END-IF
+           
+                IF FUNCTION TRIM(LS-USER-POSTAL) = SPACES
+              DISPLAY "[Error] Postal Code cannot be empty."
+           ELSE
+              MOVE "N" TO WS-INVALID
+              
+              MOVE 0 TO WS-POSTAL-LEN
+              INSPECT LS-USER-POSTAL TALLYING WS-POSTAL-LEN
+                       FOR ALL X"EF" ALL X"E3"
+              
+              IF WS-POSTAL-LEN > 0
+                 DISPLAY "Error : Japanese numbers are not allowed."
+                 MOVE "Y" TO WS-INVALID
+              END-IF
+           
+              IF WS-INVALID NOT = "Y"
+                 IF FUNCTION TRIM(LS-USER-POSTAL) NOT NUMERIC
+                     DISPLAY "Postal must contain only numbers (0-9)."
+                     DISPLAY "Err : Letters or symbols are not allowed."
+                     MOVE "Y" TO WS-INVALID
                  END-IF
               END-IF
+           
+              IF WS-INVALID NOT = "Y"
+                 MOVE FUNCTION LENGTH(FUNCTION TRIM(LS-USER-POSTAL)) 
+                    TO WS-POSTAL-LEN
+                    
+                 IF WS-POSTAL-LEN < 5 OR WS-POSTAL-LEN > 7
+                     DISPLAY "Error : Postal code length is wrong."
+                     DISPLAY "Error : It must be exactly 5 to 7 digits."
+                     MOVE "Y" TO WS-INVALID
+                 END-IF
+              END-IF
+           
+              IF WS-INVALID = "N"
+                 MOVE "Y" TO WS-VALID
+              ELSE
+                 MOVE SPACES TO LS-USER-POSTAL
+              END-IF
+                END-IF
            END-PERFORM.
 
            *> --- Address Validation ---
