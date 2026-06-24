@@ -23,7 +23,16 @@ if not exist bin mkdir bin && cobc -m *.cbl -o bin/
 - And then run this 
 
 ```
-    cobc -x user-main.cbl -o bin/user-main 
+    ## 📝 Git Workflow Notes
+Before pushing any code changes, ensure that unwanted files (e.g., node_modules/, venv/, local database files) are properly ignored using the .gitignore file.
+
+To commit and push your changes:
+
+```bash 
+git add .
+git commit -m "Your descriptive commit message"
+git push origin master
+```cobc -x user-main.cbl -o bin/user-main 
 ```
 
 - For run the program run this in terminal 
@@ -77,7 +86,7 @@ use your project folder location using pwd in terminal
 💡 Verify if the job is successfully installed by running:
 ```bash
 crontab -l
-  ```
+```
 
 ### 3.Monitoring & Stopping
 - View Active Logs: To watch the batch process run live every minute, use:
@@ -107,3 +116,17 @@ for 30 second use 30, for 1 minute use 60 etc .....
 you can see `batch_result.log` file for ensuring the batch is successfully generate or not 
 
 If you want to stop the batch run Use `Ctrl+C` to stop the while loop
+
+---
+
+## 📝 Git Workflow Notes
+Before pushing any code changes, ensure that unwanted files (e.g., node_modules/, venv/, local database files) are properly ignored using the .gitignore file.
+
+To commit and push your changes:
+
+```bash 
+git pull origin master
+git add .
+git commit -m "Your descriptive commit message"
+git push origin master
+```
