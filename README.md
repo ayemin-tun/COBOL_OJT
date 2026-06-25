@@ -20,19 +20,16 @@ In window run this frist
 ```bash 
 if not exist bin mkdir bin && cobc -m *.cbl -o bin/
 ```
+
+If this command is not work try this manually on window
+```bash
+#go to src folder first
+cobc -m *.cbl 
+```
 - And then run this 
 
-```
-    ## 📝 Git Workflow Notes
-Before pushing any code changes, ensure that unwanted files (e.g., node_modules/, venv/, local database files) are properly ignored using the .gitignore file.
-
-To commit and push your changes:
-
 ```bash 
-git add .
-git commit -m "Your descriptive commit message"
-git push origin master
-```cobc -x user-main.cbl -o bin/user-main 
+cobc -x user-main.cbl -o bin/user-main 
 ```
 
 - For run the program run this in terminal 
@@ -51,7 +48,7 @@ cobc -x BATCHRUN.cbl -o bin/BATCHRUN
  
 cd ../
 ```
-----------------------------------------------------------------------------------------------
+---
 
 ## FOR MAC 
 We use macOS `cron` (Crontab) to automate our insurance plan evaluation system (`BATCHRUN.cbl`) as a background process, simulating real-world Mainframe production environments.
