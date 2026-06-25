@@ -50,6 +50,7 @@
            END-PERFORM.
 
            IF WS-BUY-CHOICE = 'Y' OR WS-BUY-CHOICE = 'y'
+               CALL "SHOWCOV" USING APP-DATA
                CALL "SCR3USR" USING APP-DATA
                CALL "SCR4DEC" USING APP-DATA
                CALL "WRTPLAN" USING APP-DATA

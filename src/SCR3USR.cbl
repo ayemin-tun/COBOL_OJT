@@ -16,6 +16,11 @@
               ORGANIZATION IS LINE SEQUENTIAL
               FILE STATUS IS WS-DEV-STATUS.
 
+           *> --- Added: Temp File for deleting last record ---
+           SELECT OPTIONAL TEMP-FILE ASSIGN TO "result/temp.csv"
+              ORGANIZATION IS LINE SEQUENTIAL
+              FILE STATUS IS WS-TEMP-STATUS.
+
        DATA DIVISION.
        FILE SECTION.
        FD  USER-FILE.
@@ -27,10 +32,19 @@
        FD  PLAN-FILE.
        01  PLAN-REC                   PIC X(120).
 
+       *> --- Added: Temp File Record ---
+       FD  TEMP-FILE.
+       01  TEMP-REC                   PIC X(200).
+
        WORKING-STORAGE SECTION.
        01  WS-FILE-STATUS             PIC XX.
        01  WS-DEV-STATUS              PIC XX.
        01  WS-VALID                   PIC X.
+
+       *> --- Added: Variables for choice and temp file ---
+       01  WS-TEMP-STATUS             PIC XX.
+       01  WS-CHOICE                  PIC X.
+       01  WS-TEMP-EOF                PIC X.
 
       *japanese character count
        01  WS-PHONE-I         PIC 99.
@@ -51,6 +65,8 @@
        01  WS-AT-COUNT                PIC 9(2).
        01  WS-AT-POS                  PIC 9(2).
        01  WS-EMAIL-LEN               PIC 9(2).
+       *> --- အသစ်ထပ်တိုးထားသော Variable ---
+       01  WS-AT-DOT-COUNT            PIC 9(2).
 
        01  WS-USER-EOF                PIC X.
        01  WS-DEV-EOF                 PIC X.
@@ -176,7 +192,7 @@
                  MOVE 0 TO WS-EMAIL-TALLY
                  
                  INSPECT LS-USER-EMAIL TALLYING WS-EMAIL-TALLY
-                         FOR ALL X"EF" ALL X"E3"
+                          FOR ALL X"EF" ALL X"E3"
                  
                  IF WS-EMAIL-TALLY > 0
                     DISPLAY "Japanese characters are not allowed."
@@ -362,6 +378,7 @@
            MOVE 0 TO WS-AT-COUNT.
            MOVE 0 TO WS-AT-POS.
            MOVE 0 TO WS-EMAIL-LEN.
+           MOVE 0 TO WS-AT-DOT-COUNT.
            MOVE "N" TO WS-IS-INVALID-CHAR.
            
            *> 1. Character Check
@@ -389,15 +406,24 @@
               DISPLAY "[Error] Email length must be 7 to 20 chars."
            ELSE
               INSPECT LS-USER-EMAIL TALLYING WS-AT-COUNT FOR ALL "@"
+              *> --- @. ပါမပါ စစ်ဆေးခြင်း ---
+              INSPECT LS-USER-EMAIL TALLYING WS-AT-DOT-COUNT 
+                                             FOR ALL "@."
+              
               IF WS-AT-COUNT = 0
                  DISPLAY "[Error] Write with real email format."
               ELSE
-                 INSPECT LS-USER-EMAIL TALLYING WS-AT-POS 
-                    FOR CHARACTERS BEFORE INITIAL "@"
-                 IF WS-AT-POS < 2
-                    DISPLAY "[Error] At least 2 chars before '@'."
+                 *> --- @. တွေ့ရှိပါက Error ပြခြင်း ---
+                 IF WS-AT-DOT-COUNT > 0
+                    DISPLAY "[Error] Invalid format ('@.' not allowed)."
                  ELSE
-                    PERFORM CHECK-DUPLICATE-EXPIRY
+                    INSPECT LS-USER-EMAIL TALLYING WS-AT-POS 
+                       FOR CHARACTERS BEFORE INITIAL "@"
+                    IF WS-AT-POS < 2
+                       DISPLAY "[Error] At least 2 chars before '@'."
+                    ELSE
+                       PERFORM CHECK-DUPLICATE-EXPIRY
+                    END-IF
                  END-IF
               END-IF
            END-IF.
@@ -433,19 +459,142 @@
               CLOSE USER-FILE
            END-IF.
            
+           *> --- UPDATED: User Prompt and Deletion Logic ---
            IF WS-IS-ACTIVE-FOUND = "Y"
               DISPLAY " "
-              DISPLAY "[Error] This Email has an ACTIVE policy."
-              DISPLAY "        Register again after it expires."
+              DISPLAY "[Alert] This Email has an ACTIVE policy."
+              DISPLAY "Enter 'Y' to use a different email address."
+              DISPLAY "Enter 'N' to delete your current entry and exit."
+              DISPLAY "Choice (Y/N): "
+              ACCEPT WS-CHOICE
+              
+              IF WS-CHOICE = 'Y' OR 'y'
+                 MOVE SPACES TO LS-USER-EMAIL
+                 MOVE "N" TO WS-VALID
+              ELSE
+                 PERFORM DELETE-LAST-RECORD
+                 DISPLAY "Your current entry has been removed."
+                 STOP RUN
+              END-IF
            ELSE
               MOVE "Y" TO WS-VALID
+           END-IF.
+
+       *> =========================================================
+       *> DELETE-LAST-RECORD 
+       *> Deletes ONLY the records matching the current LS-APP-ID
+       *> =========================================================
+       DELETE-LAST-RECORD.
+           *> --- Clean DEVICE-FILE ---
+           MOVE "N" TO WS-DEV-EOF.
+           OPEN INPUT DEVICE-FILE.
+           OPEN OUTPUT TEMP-FILE.
+           PERFORM UNTIL WS-DEV-EOF = "Y"
+              READ DEVICE-FILE INTO DEVICE-REC
+              AT END
+                 MOVE "Y" TO WS-DEV-EOF
+              NOT AT END
+                 UNSTRING DEVICE-REC DELIMITED BY "," 
+                    INTO WS-READ-D-APPID
+                 IF FUNCTION UPPER-CASE(FUNCTION TRIM(WS-READ-D-APPID)) 
+                    = "APPID"
+                    OR FUNCTION TRIM(WS-READ-D-APPID) NOT = 
+                       FUNCTION TRIM(LS-APP-ID)
+                    WRITE TEMP-REC FROM DEVICE-REC
+                 END-IF
+              END-READ
+           END-PERFORM.
+           CLOSE DEVICE-FILE TEMP-FILE.
+
+           MOVE "N" TO WS-TEMP-EOF.
+           OPEN INPUT TEMP-FILE.
+           OPEN OUTPUT DEVICE-FILE.
+           PERFORM UNTIL WS-TEMP-EOF = "Y"
+              READ TEMP-FILE INTO TEMP-REC
+              AT END
+                 MOVE "Y" TO WS-TEMP-EOF
+              NOT AT END
+                 WRITE DEVICE-REC FROM TEMP-REC
+              END-READ
+           END-PERFORM.
+           CLOSE TEMP-FILE DEVICE-FILE.
+
+           *> --- Clean USER-FILE (If any partial data was saved) ---
+           MOVE "N" TO WS-USER-EOF.
+           OPEN INPUT USER-FILE.
+           OPEN OUTPUT TEMP-FILE.
+           PERFORM UNTIL WS-USER-EOF = "Y"
+              READ USER-FILE INTO USER-REC
+              AT END
+                 MOVE "Y" TO WS-USER-EOF
+              NOT AT END
+                 UNSTRING USER-REC DELIMITED BY "," 
+                    INTO WS-READ-U-APPID
+                 IF FUNCTION UPPER-CASE(FUNCTION TRIM(WS-READ-U-APPID)) 
+                    = "APPID"
+                    OR FUNCTION TRIM(WS-READ-U-APPID) NOT = 
+                       FUNCTION TRIM(LS-APP-ID)
+                    WRITE TEMP-REC FROM USER-REC
+                 END-IF
+              END-READ
+           END-PERFORM.
+           CLOSE USER-FILE TEMP-FILE.
+
+           MOVE "N" TO WS-TEMP-EOF.
+           OPEN INPUT TEMP-FILE.
+           OPEN OUTPUT USER-FILE.
+           PERFORM UNTIL WS-TEMP-EOF = "Y"
+              READ TEMP-FILE INTO TEMP-REC
+              AT END
+                 MOVE "Y" TO WS-TEMP-EOF
+              NOT AT END
+                 WRITE USER-REC FROM TEMP-REC
+              END-READ
+           END-PERFORM.
+           CLOSE TEMP-FILE USER-FILE.
+
+           *> --- Clean PLAN-FILE (If any partial data was saved) ---
+           MOVE "N" TO WS-PLAN-EOF.
+           OPEN INPUT PLAN-FILE.
+           IF WS-DEV-STATUS NOT = "35"
+              OPEN OUTPUT TEMP-FILE
+              PERFORM UNTIL WS-PLAN-EOF = "Y"
+                 READ PLAN-FILE INTO PLAN-REC
+                 AT END
+                    MOVE "Y" TO WS-PLAN-EOF
+                 NOT AT END
+                    UNSTRING PLAN-REC DELIMITED BY "," 
+                       INTO WS-READ-P-APPID
+                    IF FUNCTION UPPER-CASE
+                       (FUNCTION TRIM(WS-READ-P-APPID)) 
+                       = "APPID"
+                       OR FUNCTION TRIM(WS-READ-P-APPID) NOT = 
+                          FUNCTION TRIM(LS-APP-ID)
+                       WRITE TEMP-REC FROM PLAN-REC
+                    END-IF
+                 END-READ
+              END-PERFORM
+              CLOSE PLAN-FILE TEMP-FILE
+
+              MOVE "N" TO WS-TEMP-EOF
+              OPEN INPUT TEMP-FILE
+              OPEN OUTPUT PLAN-FILE
+              PERFORM UNTIL WS-TEMP-EOF = "Y"
+                 READ TEMP-FILE INTO TEMP-REC
+                 AT END
+                    MOVE "Y" TO WS-TEMP-EOF
+                 NOT AT END
+                    WRITE PLAN-REC FROM TEMP-REC
+                 END-READ
+              END-PERFORM
+              CLOSE TEMP-FILE PLAN-FILE
            END-IF.
 
 
        CHECK-PLAN-FILE.
            MOVE "N" TO WS-IS-REJECTED.
            OPEN INPUT PLAN-FILE.
-           IF WS-PLAN-STATUS NOT = "35"
+           IF WS-DEV-STATUS NOT = "35"
               MOVE "N" TO WS-PLAN-EOF
               PERFORM UNTIL WS-PLAN-EOF = "Y"
                  READ PLAN-FILE INTO PLAN-REC
@@ -499,31 +648,6 @@
               END-PERFORM
               CLOSE DEVICE-FILE
            END-IF.
-
-      *CHECK-DEVICE-FILE.
-      *    OPEN INPUT DEVICE-FILE.
-      *    IF WS-DEV-STATUS NOT = "35"
-      *       MOVE "N" TO WS-DEV-EOF
-      *       PERFORM UNTIL WS-DEV-EOF = "Y"
-      *          READ DEVICE-FILE INTO DEVICE-REC
-      *          AT END
-      *             MOVE "Y" TO WS-DEV-EOF
-      *          NOT AT END
-      *             UNSTRING DEVICE-REC DELIMITED BY ","
-      *                INTO WS-READ-D-APPID WS-READ-D-TYPE
-      *                     WS-READ-D-MODEL WS-READ-D-PRICE
-      *                     WS-READ-D-DATE WS-READ-D-PERIOD
-      *             
-      *             IF FUNCTION TRIM(WS-READ-D-APPID) = 
-      *                FUNCTION TRIM(WS-READ-U-APPID)
-      *                PERFORM CALCULATE-EXPIRY
-      *                MOVE "Y" TO WS-DEV-EOF
-      *             END-IF
-      *          END-READ
-      *       END-PERFORM
-      *       CLOSE DEVICE-FILE
-      *    END-IF.
-       
 
        CALCULATE-EXPIRY.
            IF WS-READ-U-REGDATE(5:1) = "-"
@@ -609,4 +733,3 @@
            ELSE
               DISPLAY "[Error] Invalid format. Use YYYY-MM-DD."
            END-IF.
-           
