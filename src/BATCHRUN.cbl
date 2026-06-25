@@ -23,7 +23,7 @@
        01  WS-EOF                     PIC X VALUE "N".
        01  WS-ROW-COUNT               PIC 9(4) VALUE 0.
        01  WS-IDX                     PIC 9(4) VALUE 0.
-       *> --- (ပြင်ဆင်ချက်) Master File ဖတ်သည့်နေရာတွင် သုံးမည့် Variable များ ---
+       *> ---  "Variable for reading the Master File" ---
        01  WS-MASTER-EOF              PIC X VALUE "N".
        01  WS-FOUND-FLAG              PIC X VALUE "N".
        01  WS-M-RECORD-BUFFER         PIC X(150).
@@ -143,7 +143,7 @@
            STOP RUN.
        
        *> --------------------------------------------------------
-       *> (ပြင်ဆင်ချက်) Dynamic Plan Master File တိုက်စစ်သည့် နေရာ
+       *> "Where the Dynamic Plan and Master File are matched"
        *> --------------------------------------------------------
        CHECKSCORE.
            MOVE "N" TO WS-MASTER-EOF.
@@ -156,19 +156,19 @@
                    AT END
                        MOVE "Y" TO WS-MASTER-EOF
                    NOT AT END
-                       *> CSV မှ Comma ခံပြီး Data များ ခွဲထုတ်ခြင်း
+                       *> "Parsing CSV data separated by commas"
                        UNSTRING WS-M-RECORD-BUFFER DELIMITED BY ","
                            INTO WS-M-PLAN-NAME
                                 WS-M-PLAN-DESC
                                 WS-M-PLAN-SCORE
                        END-UNSTRING
                        
-           *> Space အပိုများကြောင့် အမှားမပြအောင် TRIM လုပ်ပြီး တိုက်စစ်ခြင်း
+           *> "Trimming data before matching to avoid spacing errors"
                        IF FUNCTION TRIM(WS-PLAN(WS-IDX)) = 
                           FUNCTION TRIM(WS-M-PLAN-NAME)
                             MOVE "Y" TO WS-FOUND-FLAG
                             
-           *> Hardcode မဟုတ်တော့ဘဲ File မှရလာသော Score နှင့် နှိုင်းယှဉ်ခြင်း
+           *> "Comparing with the score retrieved from the file instead of hardcoded values"
                             IF WS-SCORE(WS-IDX) <= WS-M-PLAN-SCORE
                                  MOVE "APPROVED" TO WS-STATUS(WS-IDX)
                             ELSE
@@ -180,7 +180,7 @@
            
            CLOSE PLAN-MASTER-FILE.
            
-           *> Master File ထဲတွင် အဆိုပါ Plan အမျိုးအစား ရှာမတွေ့ခဲ့ပါက
+           *>"When the plan type cannot be located within the Master File"
            IF WS-FOUND-FLAG = "N"
                 DISPLAY "[Error] Unknown plan type: " 
                         FUNCTION TRIM(WS-PLAN(WS-IDX))
