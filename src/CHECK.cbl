@@ -82,8 +82,12 @@
            PERFORM PROCESS-SEARCH 
               UNTIL WS-LOOP-CHOICE = 'N' OR WS-LOOP-CHOICE = 'n'.
 
+           DISPLAY " ".
            DISPLAY "=== THANK YOU FOR USING INSURANCE INQUIRY ===".
-           PERFORM END-PROGRAM.
+           DISPLAY " ".
+           
+           *> Terminate execution immediately to prevent paragraph fall-through
+           STOP RUN.
 
        *> ---------------------------------------------------------
        *> Process Single Search Inquiry Task
@@ -222,8 +226,8 @@
            DISPLAY "   ---------------------------------------------".
            DISPLAY "   [PLAN & EVALUATION]".
            DISPLAY "   Plan Name  : " FUNCTION TRIM(WS-READ-P-PLANNAME).
-           DISPLAY "   Period     : " 
-           FUNCTION TRIM(WS-READ-D-PERIOD) " Months".
+           DISPLAY "   Period     : "
+            FUNCTION TRIM(WS-READ-D-PERIOD) " Months".
            DISPLAY "   Eval Score : " WS-READ-P-SCORE " Pts".
            DISPLAY "   ---------------------------------------------".
            DISPLAY "   TOTAL PREMIUM DUE  : " WS-PREMIUM-DISP " JPY".
@@ -231,6 +235,3 @@
            FUNCTION TRIM(WS-READ-P-STATUS).
            DISPLAY "   *********************************************".
            DISPLAY " ".
-
-       END-PROGRAM.
-           EXIT PROGRAM.
