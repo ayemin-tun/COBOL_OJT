@@ -117,6 +117,22 @@ you can see `batch_result.log` file for ensuring the batch is successfully gener
 If you want to stop the batch run Use `Ctrl+C` to stop the while loop
 
 ---
+## 🔍 Running the Inquiry Subsystem (Check Screen)
+
+The Inquiry Subsystem (`CHECK.cbl`) allows administrators or insurance agents to perform dynamic on-demand searches to retrieve an applicant's full details and track their updated processing status synced from the batch runs.
+
+### 1. Compile the Subsystem
+Ensure you are inside the `src/` directory, then execute the compiler to generate the binary executable into your `bin/` repository:
+```bash
+cd src #if you are not on src folder
+
+cobc -x CHECK.cbl -o bin/CHECK
+
+export COB_LIBRARY_PATH=bin
+./bin/CHECK
+
+```
+---
 
 ## 📝 Git Workflow Notes
 Before pushing any code changes, ensure that unwanted files (e.g., node_modules/, venv/, local database files) are properly ignored using the .gitignore file.
