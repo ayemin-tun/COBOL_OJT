@@ -34,18 +34,19 @@
        01  WS-PLAN-STATUS             PIC XX.
 
        *> End of File Flags
-       01  WS-USER-EOF                PIC X VALUE 'N'.
-       01  WS-DEV-EOF                 PIC X VALUE 'N'.
-       01  WS-PLAN-EOF                PIC X VALUE 'N'.
+       01  WS-USER-EOF                PIC X VALUE "N".
+       01  WS-DEV-EOF                 PIC X VALUE "N".
+       01  WS-PLAN-EOF                PIC X VALUE "N".
        
        *> Search Flags
-       01  WS-USER-FOUND              PIC X VALUE 'N'.
+       01  WS-USER-FOUND              PIC X VALUE "N".
+       01  WS-VALID-INPUT             PIC X VALUE "N".
 
        *> User Inputs
        01  WS-SEARCH-EMAIL            PIC X(30) VALUE SPACES.
        
        *> Loop Control Variable
-       01  WS-LOOP-CHOICE             PIC X VALUE 'Y'.
+       01  WS-LOOP-CHOICE             PIC X VALUE "Y".
 
        *> Display Formatters
        01  WS-PREMIUM-DISP            PIC ZZZ,ZZ9.
@@ -80,13 +81,12 @@
        MAIN-LOGIC.
            *> Loop continues until user inputs 'N' or 'n'
            PERFORM PROCESS-SEARCH 
-              UNTIL WS-LOOP-CHOICE = 'N' OR WS-LOOP-CHOICE = 'n'.
+              UNTIL WS-LOOP-CHOICE = "N" OR WS-LOOP-CHOICE = "n".
 
            DISPLAY " ".
            DISPLAY "=== THANK YOU FOR USING INSURANCE INQUIRY ===".
            DISPLAY " ".
            
-           *> Terminate execution immediately to prevent paragraph fall-through
            STOP RUN.
 
        *> ---------------------------------------------------------
@@ -142,8 +142,18 @@
            END-IF.
 
            *> Prompt user for iterative search execution
-           DISPLAY "Do you want to check another applicant? (Y/N): ".
-           ACCEPT WS-LOOP-CHOICE.
+           MOVE "N" TO WS-VALID-INPUT.
+           PERFORM UNTIL WS-VALID-INPUT = "Y"
+              DISPLAY "Do you want to check another applicant? (Y/N): "
+              ACCEPT WS-LOOP-CHOICE
+              
+              IF WS-LOOP-CHOICE = "Y" OR WS-LOOP-CHOICE = "y"
+                 OR WS-LOOP-CHOICE = "N" OR WS-LOOP-CHOICE = "n"
+                 MOVE "Y" TO WS-VALID-INPUT
+              ELSE
+                 DISPLAY "[Error] Invalid input! Please enter Y or N."
+              END-IF
+           END-PERFORM.
 
        *> ---------------------------------------------------------
        *> Fetch Device Details Matching Current Application ID
@@ -226,12 +236,13 @@
            DISPLAY "   ---------------------------------------------".
            DISPLAY "   [PLAN & EVALUATION]".
            DISPLAY "   Plan Name  : " FUNCTION TRIM(WS-READ-P-PLANNAME).
-           DISPLAY "   Period     : "
-            FUNCTION TRIM(WS-READ-D-PERIOD) " Months".
+           DISPLAY "   Period     : " 
+           FUNCTION TRIM(WS-READ-D-PERIOD) " Months".
            DISPLAY "   Eval Score : " WS-READ-P-SCORE " Pts".
            DISPLAY "   ---------------------------------------------".
            DISPLAY "   TOTAL PREMIUM DUE  : " WS-PREMIUM-DISP " JPY".
-           DISPLAY "   >> CURRENT STATUS  : " 
-           FUNCTION TRIM(WS-READ-P-STATUS).
+           DISPLAY "   >> CURRENT STATUS  : "
+            FUNCTION TRIM(WS-READ-P-STATUS).
            DISPLAY "   *********************************************".
            DISPLAY " ".
+           
